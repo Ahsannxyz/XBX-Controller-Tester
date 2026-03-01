@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Xbox Gamepad Tester</title>
+<style>
+  body { font-family: sans-serif; margin: 2rem; }
+  #padInfo { margin-bottom: 1rem; }
+  .buttons, .axes { display: flex; flex-wrap: wrap; }
+  .button, .axis {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: .5rem;
+    margin: .2rem;
+    min-width: 80px;
+    text-align: center;
+  }
+  .active { background: #4caf50; color: #fff; }
+</style>
+</head>
+<body>
+
+<h1>Xbox Gamepad Tester</h1>
+<div id="padInfo">No gamepad detected</div>
+
+<div class="buttons" id="buttons"></div>
+<div class="axes" id="axes"></div>
+
+<script>
+let gp;
+
+window.addEventListener("gamepadconnected", e => {
+  gp = e.gamepad;
+  document.getElementById("padInfo").textContent =
+    `Connected: ${gp.id}`;
+  buildUI();
+  update();
+});
+
+window.addEventListener("gamepaddisconnected", e => {
+  gp = null;
+  document.getElementById("padInfo").textContent =
+    "No gamepad detected";
+  document.getElementById("buttons").innerHTML = "";
+  document.getElementById("axes").innerHTML = "";
+});
+
+function buildUI() {
+  const btnContainer = document.getElementById("buttons");
+  btnContainer.innerHTML = "";
+  gp.buttons.forEach((b, i) => {
+    const div = document.createElement("div");
+    div.className = "button";
+    div.id = "btn" + i;
+    div.textContent = "B" + i;
+    btnContainer.appendChild(div);
+  });
+
+  const axContainer = document.getElementById("axes");
+  axContainer.innerHTML = "";
+  gp.axes.forEach((a, i) => {
+    const div = document.createElement("div");
+    div.className = "axis";
+    div.id = "ax" + i;
+    div.textContent = "Axis " + i + ": 0";
+    axContainer.appendChild(div);
+  });
+}
+
+function update() {
+  if (!gp) return;
+  gp = navigator.getGamepads()[gp.index]; // refresh
+
+  gp.buttons.forEach((b, i) => {
+    const el = document.getElementById("btn" + i);
+    if (b.pressed) el.classList.add("active");
+    else el.classList.remove("active");
+    // optionally show value
+    el.textContent = `B${i}: ${b.value.toFixed(2)}`;
+  });
+
+  gp.axes.forEach((a, i) => {
+    const el = document.getElementById("ax" + i);
+    el.textContent = `Axis ${i}: ${a.toFixed(2)}`;
+  });
+
+  requestAnimationFrame(update);
+}
+</script>
+</body>
+</html>
